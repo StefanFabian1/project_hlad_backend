@@ -1,12 +1,12 @@
 <?php
 class BaseController
 {
-    public function __call($name, $arguments)
+    public function __call(string $name, array $arguments) : void
     {
         $this->sendOutput('', array(http_response_code(404)));
     }
 
-    protected function sendOutput($data, $httpHeaders = array())
+    protected function sendOutput(string $data, array $httpHeaders = array()) : void
     {
         header_remove('Set-Cookie');
 
@@ -15,19 +15,19 @@ class BaseController
                 header($httpHeader);
             }
         }
-
         echo $data;
         exit;
     }
 
-    protected function getQueryStringParams()
+    protected function getQueryStringParams() : array
     {
-        return parse_str($_SERVER['QUERY_STRING'], $query);
+        parse_str($_SERVER['QUERY_STRING'], $query);
+        return $query;
     }
 
-    public function chooseHttpRequestMethod()
+    public function chooseHttpRequestMethod() : void
     {
-        $requestMethod = strtoupper($_SERVER["REQUEST_METHOD"]);
+       $requestMethod = strtoupper($_SERVER["REQUEST_METHOD"]);
         try {
             switch ($requestMethod) {
                 case 'GET':
