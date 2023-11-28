@@ -4,12 +4,14 @@
         private string $operation;
         private string $attribute;
         private $value;
+        private bool $negated;
 
-        public function __construct(string $operation, string $attribute, $value)
+        public function __construct(string $operation, string $attribute, $value, bool $negated)
         {
             $this->operation = $operation;
             $this->attribute = $attribute;
             $this->value = $value;
+            $this->negated = $negated;
         }
 
         public function getOperation() : string {
@@ -24,6 +26,11 @@
         public function getValue()
         {
             return $this->value;
+        }
+
+        public function isNegated() : bool
+        {
+            return $this->negated;
         }
     }
 ?>

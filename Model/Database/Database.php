@@ -58,7 +58,6 @@ class Database
                 } else {
                     $query += $this->getVariableSpecificWhereOperator($where->getValue());
                 }
-                
                 array_push($params, $where->getAttribute());
                 array_push($params, $where->getValue());
             }
@@ -89,7 +88,7 @@ class Database
 
     private function getNegatedVariableSpecificWhereOperator($value): string
     {
-        if (gettype($value) === "integer" || gettype($value) === "double" || gettype($alue) === "float") {
+        if (gettype($value) === "integer" || gettype($value) === "double" || gettype($value) === "float") {
             return " != ?";
         }
         if (gettype($value) === "string") {
