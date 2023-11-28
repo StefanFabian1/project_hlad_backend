@@ -3,7 +3,7 @@ class BaseController
 {
     public function __call(string $name, array $arguments) : void
     {
-        $this->sendOutput('', array(http_response_code(404)));
+        $this->sendEr404Output("BaseController");
     }
 
     protected function sendOutput(string $data, array $httpHeaders = array()) : void
@@ -19,10 +19,20 @@ class BaseController
         exit;
     }
 
-    protected function getQueryStringParams() : array
+     protected function sendEr404Output(string $message) : void
+     {
+        $this->sendOutput($message, array(http_response_code(404)));
+     }
+
+    protected function sendEr40Output(string $message): void
     {
-        parse_str($_SERVER['QUERY_STRING'], $query);
-        return $query;
+        $this->sendOutput($message, array(http_response_code(400)));
+    }
+
+    protected function getJsonAsObjects() : object
+    {  
+        $json = file_get_contents('php://input');
+        return json_decode($json);
     }
 
     public function chooseHttpRequestMethod() : void
@@ -46,7 +56,7 @@ class BaseController
                     $this->doDelete();
                     break;
                 default:
-                    $this->sendOutput('', array(http_response_code(404)));
+                    $this->sendEr404Output("BaseController-chooseHttpRequestMethod()");
             }
         } catch (Exception $e) {
             $this->sendOutput($e->getMessage(), array(http_response_code(404)));
