@@ -1,14 +1,13 @@
 <?php
 class UserController extends BaseController{
 
-    private UserModel $userModel;
+private UserModel $userModel;
 
     public function __construct(string $operation) {
        
         if (!strtoupper($_SERVER["REQUEST_METHOD"] === "POST")) {
-            $this->sendEr404Output("UserController");
+            $this->sendErrorResponse('Unsupported request method', 404);
         }
-        $this->userModel = new UserModel();
         switch($operation) {
             case 'login':
                 $this->tryLogIn();
@@ -20,40 +19,62 @@ class UserController extends BaseController{
                 $this->logOut();
                 break;
             default:
-                $this->sendEr404Output("UserController");
+                $this->sendErrorResponse('Method not found', 404);
         }
     }
 
     private function tryLogIn() {
-        
+        $jsonObject = $this->getJsonAsObjects();
+
+        $this->userModel = new UserModel(null, $jsonObject->email, $jsonObject->password);
+
+        try {
+            $result = $this->userModel->checkLogin();
+        } catch (Exception $e) {
+            $this->sendErrorResponse('Username or password incorrect', 500);
+        }
     }
 
     private function logOut() {
         if (strtoupper($_SERVER["REQUEST_METHOD"] === "GET")) {
 
         } else {
-            $this->sendEr404Output("UserController-logOut()");
+            $this->sendErrorResponse('Error logout user', 404);
         }
     }
 
     private function register() {
-        
-        $values =  $this->getJsonAsObjects();
-       
-        //TODO zatial takto, neskor statusy - active confirmed, active, inactive, ?last activity?
-        //name
-        //email
-        //password
-        if (StringUtils::isEmpty($values->name) || StringUtils::isEmpty($values->email) || StringUtils::isEmpty($values->password)) {
-            $this->sendEr400Output("UserController-register()");
-        }
-        //validate mail?
-        //call userModel
-        //check if name is in the db
-        //check if mail in db
-        //hash pass
 
-        echo $values->name;
+        $jsonObject = $this->getJsonAsObjects();
+
+        $this->userModel = new UserModel($jsonObject->nick, $jsonObject->email , password_hash($jsonObject->password, PASSWORD_DEFAULT));
+        //TODO zatial takto, neskor statusy - active confirmed, active, inactive, ?last activity?
+
+        //mozme vytiahnut list usernames a porovnavat to fastozne - bez odoslania
+
+        if (!$this->userModel->validate()) {
+            $this->sendErrorResponse("Invalid user data", 400);
+        }
+
+        if ($this->userModel->nickExists()) {
+            $this->sendErrorResponse("Username already exists", 409);
+        }
+
+        if ($this->userModel->emailExists()) {
+            $this->sendErrorResponse("Email already exists", 409);
+        }
+        try {
+            $result = $this->userModel->saveUser();
+        } catch (Exception $e) {
+            $this->sendErrorResponse('Exception occured while saving user', 500);
+        }
+
+        if (is_int($result)) {
+            $this->sendSuccessResponse((object)['user_id' => $result], 201);
+        } else {
+            $this->sendErrorResponse('Error saving user', 500);
+        }
+
     }
 }
 ?>

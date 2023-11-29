@@ -1,7 +1,7 @@
 <?php
 class Database
 {
-    
+
     protected $connection = null;
 
     public function __construct()
@@ -17,52 +17,72 @@ class Database
         }
     }
 
-    //TODO nebude select ale getAll, GetWithCriteria, zakladne queriny budu tu, rozsirujuce/specificke v extednujucej metode
-    protected function select(string $query = "", array $params = []): array
+    protected function save(object $object)
     {
-        try {
-            $stmt = $this->executeStmt($query, $params);
-            $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-            $stmt->close();
-            return $result;
-        } catch (Exception $e) {
-            $stmt->close();
-            throw new Exception($e->getMessage());
+
+        $tableName = $object->getTableName();
+
+        $reflector = new ReflectionClass($object);
+        $properties = $reflector->getProperties(ReflectionProperty::IS_PRIVATE);
+
+        $columns = [];
+        $values = [];
+        $types = '';
+
+        foreach ($properties as $property) {
+            $property->setAccessible(true);
+            $propertyName = $property->getName();
+
+            if ($propertyName !== 'tableName') {
+                $columns[] = $propertyName;
+                $values[] = $property->getValue($object);
+                $types .= $this->getDataTypeSpecifier($property->getType()->getName());
+            }
         }
-        return false;
+
+        $columnsStr = implode(', ', $columns);
+
+        $valuesStr = implode(', ', array_fill(0, count($values), '?'));
+
+        $query = "INSERT INTO $tableName ($columnsStr) VALUES ($valuesStr)";
+
+        $this->executeStmt($query, $values, $types);
+
+        return $this->connection->insert_id;
     }
 
-    protected function getWithCriteria(string $table, array $cols, array $wheres): void
+    protected function select(string $table, ?array $cols, array $wheres): array
     {
-        $query = "SELECT \? FROM \?";
-        $params = array();
-        if (count($cols) > 0) {
-            foreach ($cols as $col) {
-                array_push($params, $col);
-            }
-        } else {
-            array_push($params, "*");
-        }
-        array_push($params, $table);
+        $columns = $cols ? implode(", ", $cols) : "*";
+        $query = "SELECT $columns FROM $table";
+        $params = [];
+        $types = '';
 
-        if (count($wheres) > 0 ) {
-            for($i = 0; $i < count($wheres); $i++) {
-                $where = $wheres[$i];
-                if ($i == 0) {
-                    $query += "WHERE \?";
-                } else {
-                    $query += $where->getOperation() . " \?";
+        if (!empty($wheres)) {
+            $query .= " WHERE ";
+            foreach ($wheres as $i => $where) {
+                if ($i > 0) {
+                    $query .= " " . $where->getOperation() . " ";
                 }
+
+                $query .= $where->getAttribute();
+
                 if ($where->isNegated()) {
-                    $query += $this->getNegatedVariableSpecificWhereOperator($where->getValue());
+                    $query .= $this->getNegatedVariableSpecificWhereOperator($where->getValue());
                 } else {
-                    $query += $this->getVariableSpecificWhereOperator($where->getValue());
+                    $query .= $this->getVariableSpecificWhereOperator($where->getValue());
                 }
-                array_push($params, $where->getAttribute());
-                array_push($params, $where->getValue());
+
+                $params[] = $where->getValue();
+                $types .= $this->getDataTypeSpecifier(gettype($where->getValue()));
             }
         }
+        //var_dump($query);
+        //var_dump($params);
+        //var_dump($types);
+       return $this->executeStmt($query, $params, $types);
     }
+
 
     private function getVariableSpecificWhereOperator($value): string
     {
@@ -70,20 +90,20 @@ class Database
             return " = ?";
         }
         if (gettype($value) === "string") {
-            return " LIKE \?";
+            return " LIKE ?";
         }
         if (gettype($value) === "boolean" || gettype($value) === "NULL") {
-            return " IS \?";
+            return " IS ?";
         }
         if (gettype($value) === "array") {
             $result = " IN (";
             foreach ($value as $val) {
-                $result += "?,";
+                $result .= "?,";
             }
             $result = rtrim($result, ',');
             return $result . ")";
         }
-        //TODO handle error
+        // TODO handle error
     }
 
     private function getNegatedVariableSpecificWhereOperator($value): string
@@ -92,37 +112,64 @@ class Database
             return " != ?";
         }
         if (gettype($value) === "string") {
-            return " NOT LIKE \?";
+            return " NOT LIKE ?";
         }
         if (gettype($value) === "boolean" || gettype($value) === "NULL") {
-            return " IS NOT \?";
+            return " IS NOT ?";
         }
         if (gettype($value) === "array") {
             $result = " NOT IN (";
             foreach ($value as $val) {
-                $result += "?,";
+                $result .= "?,";
             }
             $result = rtrim($result, ',');
             return $result . ")";
         }
-        //TODO handle error
+        // TODO handle error
     }
 
-    private function executeStmt(string $query = "", array $params = []): mysqli_stmt
+    private function executeStmt(string $query = "", array $values = [], string $types = ''): ?array
     {
+        $stmt = null;
+
         try {
             $stmt = $this->connection->prepare($query);
+
             if ($stmt === false) {
-                throw new Exception("Bad query:" . $query);
+                throw new Exception("Failed to prepare query: $query");
             }
-            if ($params) {
-                $stmt->bind_param($params[0], $params[1]);
+
+            if (!empty($values) && !empty($types)) {
+                $stmt->bind_param($types, ...$values);
             }
+
             $stmt->execute();
-            return $stmt;
+
+            if (strcasecmp(substr(trim($query), 0, 6), 'SELECT') === 0) {
+                $result = $stmt->get_result();
+                $data = $result->fetch_all(MYSQLI_ASSOC);
+                return $data;
+            }
+
         } catch (Exception $e) {
-            $stmt->close();
-            throw new Exception($e->getMessage());
+            throw new Exception("Query execution failed: " . $e->getMessage(), 0, $e);
+        } finally {
+            if ($stmt !== null) {
+                $stmt->close();
+            }
+        }
+    }
+
+    private function getDataTypeSpecifier(string $typeName)
+    {
+        switch ($typeName) {
+            case 'int':
+                return 'i'; // Integer
+            case 'float':
+                return 'd'; // Double
+                // Add more cases for other data types as needed
+            default:
+                return 's'; // Default to string if type is not recognized
         }
     }
 }

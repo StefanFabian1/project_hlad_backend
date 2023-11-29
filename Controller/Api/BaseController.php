@@ -3,30 +3,28 @@ class BaseController
 {
     public function __call(string $name, array $arguments) : void
     {
-        $this->sendEr404Output("BaseController");
+        $this->sendErrorResponse('Unidentified api method', 404);
     }
 
-    protected function sendOutput(string $data, array $httpHeaders = array()) : void
+    protected function sendOutput(string $data, int $statusCode) : void
     {
         header_remove('Set-Cookie');
-
-        if (is_array($httpHeaders) && !empty($httpHeaders)) {
-            foreach ($httpHeaders as $httpHeader) {
-                header($httpHeader);
-            }
-        }
+        header('Content-Type: application/json');
+        http_response_code($statusCode);
         echo $data;
         exit;
     }
 
-     protected function sendEr404Output(string $message) : void
-     {
-        $this->sendOutput($message, array(http_response_code(404)));
-     }
-
-    protected function sendEr40Output(string $message): void
+    protected function sendSuccessResponse(object $data, int $statusCode)
     {
-        $this->sendOutput($message, array(http_response_code(400)));
+        $response = ['status' => 'success', 'data' => $data];
+        $this->sendOutput(json_encode($response), $statusCode);
+    }
+
+    protected function sendErrorResponse(string $message, int $statusCode)
+    {
+        $response = ['status' => 'error', 'message' => $message];
+        $this->sendOutput(json_encode($response), $statusCode);
     }
 
     protected function getJsonAsObjects() : object
@@ -56,10 +54,10 @@ class BaseController
                     $this->doDelete();
                     break;
                 default:
-                    $this->sendEr404Output("BaseController-chooseHttpRequestMethod()");
+                    $this->sendErrorResponse('Unidentified request method', 404);
             }
         } catch (Exception $e) {
-            $this->sendOutput($e->getMessage(), array(http_response_code(404)));
+            $this->sendErrorResponse('Unidentified request method', 404);
         }
     }
 }
