@@ -2,18 +2,23 @@
 require_once PROJECT_ROOT_PATH . "utils\\SessionInterface.php";
 class SessionManager implements SessionInterface
 {
+    private int $sessionlifetime = 3600;
 
     public function __construct()
     {
         if (session_status() === PHP_SESSION_NONE) {
-            ini_set('session.gc_maxlifetime', 3600);
-            session_set_cookie_params(3600);
-            //TODO toto setneme priamo do session a v metodach sa budeme obracat priamo na session array keys
-            $this->set("time_of_start", new DateTime());
-            session_start();
+            ini_set('session.gc_maxlifetime', $this->sessionlifetime);
+            session_set_cookie_params($this->sessionlifetime);
+            $this->initializeSession();
         } else {
             $this->regenerateSessionId();
         }
+    }
+
+    private function initializeSession(): void
+    {
+        session_start();
+        $this->set('time_of_start', new DateTimeImmutable());
     }
 
     public function get(string $key)
@@ -50,11 +55,15 @@ class SessionManager implements SessionInterface
 
     public function regenerateSessionId(): void
     {
-        if ((new DateTime())->diff($this->get("time_of_start")) > new DateInterval("10 minutes")) {
-            $this->set("time_of_start", new DateTime());
+        $timeOfStart = $this->get("time_of_start");
+
+        if ((new DateTimeImmutable())->diff($timeOfStart)->i > 1) {
+            $this->set("time_of_start", new DateTimeImmutable());
+            ini_set('session.gc_maxlifetime',$this->sessionlifetime);
+            session_set_cookie_params($this->sessionlifetime);
             session_regenerate_id();
-        } else if ((new DateTime())->diff($this->get("time_of_start")) > new DateInterval("30 minutes")) {
-           $this->kill();
+        } elseif ((new DateTimeImmutable())->diff($timeOfStart)->i > 30) {
+            $this->kill();
         }
     }
 

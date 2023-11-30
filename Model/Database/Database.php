@@ -149,6 +149,8 @@ class Database
                 $result = $stmt->get_result();
                 $data = $result->fetch_all(MYSQLI_ASSOC);
                 return $data;
+            } else {
+                return null;
             }
 
         } catch (Exception $e) {

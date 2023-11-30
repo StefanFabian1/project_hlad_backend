@@ -20,10 +20,10 @@ private UserModel $userModel;
         }
     }
 
-    private function tryLogIn() {
+    private function tryLogIn() : void {
         if (!strtoupper($_SERVER["REQUEST_METHOD"] === "POST")) {
             $this->sendErrorResponse('Unsupported request method', 404);
-        }
+        } 
         $jsonObject = $this->getJsonAsObjects();
 
         $this->userModel = new UserModel(null, $jsonObject->email, $jsonObject->password);
@@ -33,6 +33,7 @@ private UserModel $userModel;
             if ($nickName != null) {
                 $sessionManager = new SessionManager();
                 $sessionManager->set('user', $nickName);
+               
                 $this->sendSuccessResponse((object)['nickname' => $nickName], 200);
             } else {
                 $this->sendErrorResponse("Username or password incorrect", 401);
@@ -42,15 +43,22 @@ private UserModel $userModel;
         }
     }
 
-    private function logOut() {
+    private function logOut() : void {
         if (strtoupper($_SERVER["REQUEST_METHOD"] === "GET")) {
-
+            $sessionManager = new SessionManager();
+            var_dump($sessionManager->get('user'));
+            if ($sessionManager->has('user')) {
+                $sessionManager->kill();
+                $this->sendSuccessResponse((object)[], 200);
+            } else {
+                $this->sendErrorResponse('Error logout user', 404);
+            } 
         } else {
-            $this->sendErrorResponse('Error logout user', 404);
+            $this->sendErrorResponse('Unsupported request method', 404);
         }
     }
 
-    private function register() {
+    private function register() : void {
         if (!strtoupper($_SERVER["REQUEST_METHOD"] === "PUT")) {
             $this->sendErrorResponse('Unsupported request method', 404);
         }

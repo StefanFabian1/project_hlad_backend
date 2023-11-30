@@ -27,8 +27,8 @@ class UserModel extends Database implements ModelInterface
 
     public function checkLogin() : ?string
     {
-        $storedHashedPassword = !empty($this->select($this->getTableName(), array('password, nick'), array(new WhereClause('AND', 'email', $this->email, false))));
-        if ($storedHashedPassword) {
+        $storedHashedPassword = $this->select($this->getTableName(), array('password, nick'), array(new WhereClause('AND', 'email', $this->email, false)));
+        if (!empty($storedHashedPassword)) {
             if (password_verify($this->password, $storedHashedPassword[0]['password'])) {
                 return $storedHashedPassword[0]['nick'];
             }
