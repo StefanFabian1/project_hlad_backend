@@ -25,16 +25,16 @@ private UserModel $userModel;
             $this->sendErrorResponse('Unsupported request method', 404);
         } 
         $jsonObject = $this->getJsonAsObjects();
-
-        $this->userModel = new UserModel(null, $jsonObject->email, $jsonObject->password);
-
+        $this->userModel = new UserModel();
+        $this->userModel->setEmail($jsonObject->email);
+        $this->userModel->setPassword($jsonObject->password);
         try {
-            $nickName = $this->userModel->checkLogin();
-            if ($nickName != null) {
+            $user = $this->userModel->checkLogin();
+            if ($user != null) {
                 $sessionManager = new SessionManager();
-                $sessionManager->set('user', $nickName);
+                $sessionManager->set('userid', $user->getId());
                
-                $this->sendSuccessResponse((object)['nickname' => $nickName], 200);
+                $this->sendSuccessResponse((object)['nickname' => $user->getNick()], 200);
             } else {
                 $this->sendErrorResponse("Username or password incorrect", 401);
             }

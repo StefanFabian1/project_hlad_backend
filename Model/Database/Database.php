@@ -33,7 +33,7 @@ class Database
             $property->setAccessible(true);
             $propertyName = $property->getName();
 
-            if ($propertyName !== 'tableName') {
+            if ($propertyName !== 'tableName' && $propertyName !== 'id') {
                 $columns[] = $propertyName;
                 $values[] = $property->getValue($object);
                 $types .= $this->getDataTypeSpecifier($property->getType()->getName());

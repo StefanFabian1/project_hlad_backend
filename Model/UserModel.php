@@ -4,20 +4,16 @@ require_once PROJECT_ROOT_PATH . "\\Model\\Database\\Database.php";
 class UserModel extends Database implements ModelInterface
 {
 
+    private int $id;
     private string $nick;
     private string $email;
     private string $password;
 
     private string $tableName = "uzivatel";
 
-    public function __construct(?string $nick, string $email, string $password)
+    public function __construct()
     {
         parent::__construct();
-        if ($nick != null) {
-            $this->nick = $nick;
-        }
-        $this->email = $email;
-        $this->password = $password;
     }
 
     public function saveUser()
@@ -25,12 +21,15 @@ class UserModel extends Database implements ModelInterface
         return $this->save($this);
     }
 
-    public function checkLogin() : ?string
+    public function checkLogin() : ?UserModel
     {
-        $storedHashedPassword = $this->select($this->getTableName(), array('password, nick'), array(new WhereClause('AND', 'email', $this->email, false)));
-        if (!empty($storedHashedPassword)) {
-            if (password_verify($this->password, $storedHashedPassword[0]['password'])) {
-                return $storedHashedPassword[0]['nick'];
+        $data = $this->select($this->getTableName(), array('password, nick, id'), array(new WhereClause('AND', 'email', $this->email, false)));
+        if (!empty($data)) {
+            if (password_verify($this->password, $data[0]['password'])) {
+                $result = new UserModel();
+                $result->setNick($data[0]['nick']);
+                $result->setId($data[0]['id']);
+                return $result;
             }
         }
         return null;
@@ -44,12 +43,37 @@ class UserModel extends Database implements ModelInterface
         return !empty($this->select($this->getTableName(), array('id'), array(new WhereClause('AND', 'email', $this->email, false))));
     }
 
-    public function getNick() : string{
+    public function getNick() : ?string{
         return $this->nick;
+    }
+
+    public function setNick(string $nick): void
+    {
+        $this->nick = $nick;
+    }
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function setId(int $id): void
+    {
+        $this->id = $id;
     }
 
     public function getEmail() : string {
         return $this->email;
+    }
+
+    public function setEmail(string $email): void
+    {
+        $this->email = $email;
+    }
+
+    public function setPassword(string $password): void
+    {
+        $this->password = $password;
     }
 
     public function getTableName() : string
