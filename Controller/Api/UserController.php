@@ -29,9 +29,16 @@ private UserModel $userModel;
         $this->userModel = new UserModel(null, $jsonObject->email, $jsonObject->password);
 
         try {
-            $result = $this->userModel->checkLogin();
+            $nickName = $this->userModel->checkLogin();
+            if ($nickName != null) {
+                $sessionManager = new SessionManager();
+                $sessionManager->set('user', $nickName);
+                $this->sendSuccessResponse((object)['nickname' => $nickName], 200);
+            } else {
+                $this->sendErrorResponse("Username or password incorrect", 401);
+            }
         } catch (Exception $e) {
-            $this->sendErrorResponse('Username or password incorrect', 500);
+            $this->sendErrorResponse('Exception occured while logging user in', 500);
         }
     }
 

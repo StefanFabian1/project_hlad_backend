@@ -25,17 +25,15 @@ class UserModel extends Database implements ModelInterface
         return $this->save($this);
     }
 
-    public function checkLogin()
+    public function checkLogin() : ?string
     {
-        $existsLogin = !empty($this->select($this->getTableName(), array('id'), array(new WhereClause('AND', 'email', $this->email, false))));
-        if ($existsLogin) {
-            $storedHashedPassword = $this->select($this->getTableName(), array('password'), array(new WhereClause('AND', 'email', $this->email, false)));
+        $storedHashedPassword = !empty($this->select($this->getTableName(), array('password, nick'), array(new WhereClause('AND', 'email', $this->email, false))));
+        if ($storedHashedPassword) {
             if (password_verify($this->password, $storedHashedPassword[0]['password'])) {
-                var_dump("Sucess");
-            } else {
-                var_dump("Failed");
+                return $storedHashedPassword[0]['nick'];
             }
         }
+        return null;
     }
 
     public function nickExists() : bool {

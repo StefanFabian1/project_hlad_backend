@@ -11,6 +11,8 @@ class SessionManager implements SessionInterface
             //TODO toto setneme priamo do session a v metodach sa budeme obracat priamo na session array keys
             $this->set("time_of_start", new DateTime());
             session_start();
+        } else {
+            $this->regenerateSessionId();
         }
     }
 
@@ -49,7 +51,10 @@ class SessionManager implements SessionInterface
     public function regenerateSessionId(): void
     {
         if ((new DateTime())->diff($this->get("time_of_start")) > new DateInterval("10 minutes")) {
+            $this->set("time_of_start", new DateTime());
             session_regenerate_id();
+        } else if ((new DateTime())->diff($this->get("time_of_start")) > new DateInterval("30 minutes")) {
+           $this->kill();
         }
     }
 
@@ -57,5 +62,6 @@ class SessionManager implements SessionInterface
     {
         session_unset();
         session_destroy();
+        //TODO return success kill message;
     }
 }
