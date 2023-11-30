@@ -30,7 +30,7 @@ private UserModel $userModel;
         $this->userModel->setPassword($jsonObject->password);
         try {
             $user = $this->userModel->checkLogin();
-            if ($user != null) {
+            if ($user != null && $user->getId() != null && $user->getNick() != null) {
                 $sessionManager = new SessionManager();
                 $sessionManager->set('userid', $user->getId());
                
