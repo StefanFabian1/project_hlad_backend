@@ -1,10 +1,10 @@
 <?php
 class UserController extends BaseController{
 
-private UserModel $userModel;
-
     public function __construct(string $operation) {
-       
+
+        parent::__construct();
+
         switch($operation) {
             case 'login':
                 $this->tryLogIn();
@@ -25,31 +25,29 @@ private UserModel $userModel;
             $this->sendErrorResponse('Unsupported request method', 404);
         } 
         $jsonObject = $this->getJsonAsObjects();
-        $this->userModel = new UserModel();
-        $this->userModel->setEmail($jsonObject->email);
-        $this->userModel->setPassword($jsonObject->password);
+        $userModel = new UserModel();
+        $userModel->setEmail($jsonObject->email);
+        $userModel->setPassword($jsonObject->password);
         try {
-            $user = $this->userModel->checkLogin();
+            $user = $userModel->checkLogin();
             if ($user != null && $user->getId() != null && $user->getNick() != null) {
-                $sessionManager = new SessionManager();
-                $sessionManager->set('userid', $user->getId());
+                $this->sessionManager->set('userid', $user->getId());
                
-                $this->sendSuccessResponse((object)['nickname' => $user->getNick()], 200);
+                $this->sendSuccessResponse(array((object)['nickname' => $user->getNick()]), 200);
             } else {
                 $this->sendErrorResponse("Username or password incorrect", 401);
             }
         } catch (Exception $e) {
-            $this->sendErrorResponse('Exception occured while logging user in', 500);
+            $this->sendErrorResponse('Exception occured while logging user in:' . $e->getMessage(), 500);
         }
     }
 
     private function logOut() : void {
         if (strtoupper($_SERVER["REQUEST_METHOD"] === "GET")) {
-            $sessionManager = new SessionManager();
-            var_dump($sessionManager->get('user'));
-            if ($sessionManager->has('user')) {
-                $sessionManager->kill();
-                $this->sendSuccessResponse((object)[], 200);
+            var_dump($this->sessionManager->get('user'));
+            if ($this->sessionManager->has('user')) {
+                $this->sessionManager->kill();
+                $this->sendSuccessResponse(array((object)[]), 200);
             } else {
                 $this->sendErrorResponse('Error logout user', 404);
             } 
@@ -64,17 +62,17 @@ private UserModel $userModel;
         }
         $jsonObject = $this->getJsonAsObjects();
 
-        $this->userModel = new UserModel($jsonObject->nick, $jsonObject->email , password_hash($jsonObject->password, PASSWORD_DEFAULT));
+        $userModel = new UserModel($jsonObject->nick, $jsonObject->email , password_hash($jsonObject->password, PASSWORD_DEFAULT));
         //TODO zatial takto, neskor statusy - active confirmed, active, inactive, ?last activity on account?
 
         //mozme vytiahnut list usernames, poslat vsetky a porovnavat to fastozne -live
 
-        if (!$this->userModel->validate()) {
+        if (!$userModel->validate()) {
             $this->sendErrorResponse("Invalid user data", 400);
         }
 
-        $nickExists = $this->userModel->nickExists();
-        $mailExists = $this->userModel->emailExists();
+        $nickExists = $userModel->nickExists();
+        $mailExists = $userModel->emailExists();
         if ($nickExists && $mailExists) {
             $this->sendErrorResponse("Nickname and email already exists", 409);
         } else if (!$nickExists && $mailExists) {
@@ -83,13 +81,13 @@ private UserModel $userModel;
             $this->sendErrorResponse("Nickname already exists", 409);
         }
         try {
-            $result = $this->userModel->saveUser();
+            $result = $userModel->saveUser();
         } catch (Exception $e) {
-            $this->sendErrorResponse('Exception occured while saving user', 500);
+            $this->sendErrorResponse('Exception occured while saving user:' . $e->getMessage(), 500);
         }
 
         if (is_int($result)) {
-            $this->sendSuccessResponse((object)['user_id' => $result], 201);
+            $this->sendSuccessResponse(array((object)['user_id' => $result]), 201);
         } else {
             $this->sendErrorResponse('Error saving user', 500);
         }

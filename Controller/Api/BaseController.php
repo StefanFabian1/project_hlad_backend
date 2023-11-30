@@ -1,6 +1,13 @@
 <?php
 class BaseController
 {
+
+    protected SessionManager $sessionManager;
+
+    public function __construct() {
+        $this->sessionManager = new SessionManager();
+    }
+
     public function __call(string $name, array $arguments) : void
     {
         $this->sendErrorResponse('Unidentified api method', 404);
@@ -15,16 +22,22 @@ class BaseController
         exit;
     }
 
-    protected function sendSuccessResponse(object $data, int $statusCode)
+    protected function sendSuccessResponse(array $objects, int $statusCode) : void
     {
-        $response = ['status' => 'success', 'data' => $data];
+        $response = ['status' => 'success', 'data' => $objects];
         $this->sendOutput(json_encode($response), $statusCode);
     }
 
-    protected function sendErrorResponse(string $message, int $statusCode)
+    protected function sendErrorResponse(string $message, int $statusCode): void
     {
         $response = ['status' => 'error', 'message' => $message];
         $this->sendOutput(json_encode($response), $statusCode);
+    }
+
+    protected function sendNoContentResponse(): void
+    {
+        $response = ['status' => 'success', 'message' => 'No content'];
+        $this->sendOutput(json_encode($response), 204);
     }
 
     protected function getJsonAsObjects() : object

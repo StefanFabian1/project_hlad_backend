@@ -43,7 +43,7 @@ class UserModel extends Database implements ModelInterface
         return !empty($this->select($this->getTableName(), array('id'), array(new WhereClause('AND', 'email', $this->email, false))));
     }
 
-    public function getNick() : ?string{
+    public function getNick() : string{
         return $this->nick;
     }
 
