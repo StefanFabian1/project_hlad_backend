@@ -3,8 +3,6 @@ require_once PROJECT_ROOT_PATH . "\\Model\\Database\\Database.php";
 
 class UserModel extends Database implements ModelInterface
 {
-
-    private int $id;
     private string $nick;
     private string $email;
     private string $password;
@@ -50,16 +48,6 @@ class UserModel extends Database implements ModelInterface
     public function setNick(string $nick): void
     {
         $this->nick = $nick;
-    }
-
-    public function getId(): int
-    {
-        return $this->id;
-    }
-
-    public function setId(int $id): void
-    {
-        $this->id = $id;
     }
 
     public function getEmail() : string {

@@ -3,6 +3,7 @@ class Database
 {
 
     protected $connection = null;
+    protected int $id;
 
     public function __construct()
     {
@@ -173,5 +174,15 @@ class Database
             default:
                 return 's'; // Default to string if type is not recognized
         }
+    }
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function setId(int $id): void
+    {
+        $this->id = $id;
     }
 }
