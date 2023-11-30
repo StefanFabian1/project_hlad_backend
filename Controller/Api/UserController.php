@@ -65,20 +65,22 @@ private UserModel $userModel;
         $jsonObject = $this->getJsonAsObjects();
 
         $this->userModel = new UserModel($jsonObject->nick, $jsonObject->email , password_hash($jsonObject->password, PASSWORD_DEFAULT));
-        //TODO zatial takto, neskor statusy - active confirmed, active, inactive, ?last activity?
+        //TODO zatial takto, neskor statusy - active confirmed, active, inactive, ?last activity on account?
 
-        //mozme vytiahnut list usernames a porovnavat to fastozne - bez odoslania
+        //mozme vytiahnut list usernames, poslat vsetky a porovnavat to fastozne -live
 
         if (!$this->userModel->validate()) {
             $this->sendErrorResponse("Invalid user data", 400);
         }
 
-        if ($this->userModel->nickExists()) {
-            $this->sendErrorResponse("Username already exists", 409);
-        }
-
-        if ($this->userModel->emailExists()) {
+        $nickExists = $this->userModel->nickExists();
+        $mailExists = $this->userModel->emailExists();
+        if ($nickExists && $mailExists) {
+            $this->sendErrorResponse("Nickname and email already exists", 409);
+        } else if (!$nickExists && $mailExists) {
             $this->sendErrorResponse("Email already exists", 409);
+        } else if ($nickExists && !$mailExists) {
+            $this->sendErrorResponse("Nickname already exists", 409);
         }
         try {
             $result = $this->userModel->saveUser();
