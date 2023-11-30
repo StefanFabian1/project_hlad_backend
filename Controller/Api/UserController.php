@@ -5,9 +5,6 @@ private UserModel $userModel;
 
     public function __construct(string $operation) {
        
-        if (!strtoupper($_SERVER["REQUEST_METHOD"] === "POST")) {
-            $this->sendErrorResponse('Unsupported request method', 404);
-        }
         switch($operation) {
             case 'login':
                 $this->tryLogIn();
@@ -24,6 +21,9 @@ private UserModel $userModel;
     }
 
     private function tryLogIn() {
+        if (!strtoupper($_SERVER["REQUEST_METHOD"] === "POST")) {
+            $this->sendErrorResponse('Unsupported request method', 404);
+        }
         $jsonObject = $this->getJsonAsObjects();
 
         $this->userModel = new UserModel(null, $jsonObject->email, $jsonObject->password);
@@ -51,7 +51,9 @@ private UserModel $userModel;
     }
 
     private function register() {
-
+        if (!strtoupper($_SERVER["REQUEST_METHOD"] === "PUT")) {
+            $this->sendErrorResponse('Unsupported request method', 404);
+        }
         $jsonObject = $this->getJsonAsObjects();
 
         $this->userModel = new UserModel($jsonObject->nick, $jsonObject->email , password_hash($jsonObject->password, PASSWORD_DEFAULT));
