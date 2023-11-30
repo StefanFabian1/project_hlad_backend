@@ -15,7 +15,9 @@ if (isset($uri[2]) && (strcasecmp($uri[2], 'login') == 0 || strcasecmp($uri[2], 
 } else if (isset($uri[2]) && file_exists(PROJECT_ROOT_PATH . "Controller\\Api\\" . ucfirst(strtolower($uri[2])) . "Controller.php")) {
     //handling controller requestov
     $controllerNameString = ucfirst(strtolower($uri[2])) . "Controller";
+    $modelNameString = ucfirst(strtolower($uri[2])) . "Model";
     require PROJECT_ROOT_PATH . "Controller\\Api\\" . $controllerNameString . ".php";
+    require PROJECT_ROOT_PATH . "Model\\" . $modelNameString . ".php";
     new $controllerNameString();
 } else {
     header_remove('Set-Cookie');
