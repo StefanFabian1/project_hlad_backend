@@ -8,7 +8,6 @@ class Database
     public function __construct()
     {
         try {
-            require_once PROJECT_ROOT_PATH . "\\Model\\Database\\WhereClause.php";
             $this->connection = new mysqli(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_DATABASENAME);
             if (mysqli_connect_errno()) {
                 throw new Exception("Nedá sa pripojiť k databáze.");
@@ -16,6 +15,31 @@ class Database
         } catch (Exception $e) {
             throw new Exception($e->getMessage());
         }
+    }
+
+    protected function insert(string $query, array $values = []) {
+        $types = "";
+        foreach($values as $value) {
+            $types .= $this->getDataTypeSpecifier(gettype($value));
+        }
+        $this->executeStmt($query, $values, $types);
+        return $this->connection->insert_id;
+        var_dump($query);
+        var_dump($values);
+        var_dump($types);
+    }
+
+    protected function selectNew(string $query, array $values = [])
+    {
+        $types = "";
+        foreach ($values as $value) {
+            $types .= $this->getDataTypeSpecifier(gettype($value));
+        }
+        var_dump($query);
+        var_dump($values);
+        var_dump($types);
+        $this->executeStmt($query, $values, $types);
+        return $this->executeStmt($query, $values, $types);
     }
 
     protected function save(object $object)
@@ -52,83 +76,6 @@ class Database
         return $this->connection->insert_id;
     }
 
-    protected function select(string $table, ?array $cols, array $wheres): array
-    {
-        $columns = $cols ? implode(", ", $cols) : "*";
-        $query = "SELECT $columns FROM $table";
-        $params = [];
-        $types = '';
-
-        if (!empty($wheres)) {
-            $query .= " WHERE ";
-            foreach ($wheres as $i => $where) {
-                if ($i > 0) {
-                    $query .= " " . $where->getOperation() . " ";
-                }
-
-                $query .= $where->getAttribute();
-
-                if ($where->isNegated()) {
-                    $query .= $this->getNegatedVariableSpecificWhereOperator($where->getValue());
-                } else {
-                    $query .= $this->getVariableSpecificWhereOperator($where->getValue());
-                }
-
-                $params[] = $where->getValue();
-                $types .= $this->getDataTypeSpecifier(gettype($where->getValue()));
-            }
-        }
-        //var_dump($query);
-        //var_dump($params);
-        //var_dump($types);
-       return $this->executeStmt($query, $params, $types);
-    }
-
-
-    private function getVariableSpecificWhereOperator($value): string
-    {
-        if (gettype($value) === "integer" || gettype($value) === "double" || gettype($value) === "float") {
-            return " = ?";
-        }
-        if (gettype($value) === "string") {
-            return " LIKE ?";
-        }
-        if (gettype($value) === "boolean" || gettype($value) === "NULL") {
-            return " IS ?";
-        }
-        if (gettype($value) === "array") {
-            $result = " IN (";
-            foreach ($value as $val) {
-                $result .= "?,";
-            }
-            $result = rtrim($result, ',');
-            return $result . ")";
-        }
-        // TODO handle error
-    }
-
-    private function getNegatedVariableSpecificWhereOperator($value): string
-    {
-        if (gettype($value) === "integer" || gettype($value) === "double" || gettype($value) === "float") {
-            return " != ?";
-        }
-        if (gettype($value) === "string") {
-            return " NOT LIKE ?";
-        }
-        if (gettype($value) === "boolean" || gettype($value) === "NULL") {
-            return " IS NOT ?";
-        }
-        if (gettype($value) === "array") {
-            $result = " NOT IN (";
-            foreach ($value as $val) {
-                $result .= "?,";
-            }
-            $result = rtrim($result, ',');
-            return $result . ")";
-        }
-        // TODO handle error
-    }
-
     private function executeStmt(string $query = "", array $values = [], string $types = ''): ?array
     {
         $stmt = null;
@@ -153,7 +100,6 @@ class Database
             } else {
                 return null;
             }
-
         } catch (Exception $e) {
             throw new Exception("Query execution failed: " . $e->getMessage(), 0, $e);
         } finally {
@@ -166,10 +112,12 @@ class Database
     private function getDataTypeSpecifier(string $typeName)
     {
         switch ($typeName) {
-            case 'int':
+            case 'integer':
                 return 'i'; // Integer
             case 'float':
                 return 'd'; // Double
+            case 'boolean':
+                return '';
                 // Add more cases for other data types as needed
             default:
                 return 's'; // Default to string if type is not recognized

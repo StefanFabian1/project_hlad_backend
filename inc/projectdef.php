@@ -12,8 +12,6 @@ require_once PROJECT_ROOT_PATH . "Controller\\Api\\BaseController.php";
 
 require_once PROJECT_ROOT_PATH . "Model\\Database\\Database.php";
 
-require_once PROJECT_ROOT_PATH . "Model\\ModelInterface.php";
-
 require_once PROJECT_ROOT_PATH . "utils\\SessionManager.php";
 
 require_once PROJECT_ROOT_PATH . "utils\\StringUtils.php";

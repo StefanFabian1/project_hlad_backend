@@ -5,7 +5,9 @@ class BaseController
     protected SessionManager $sessionManager;
 
     public function __construct() {
+       
         $this->sessionManager = new SessionManager();
+        $this->chooseHttpRequestMethod();
     }
 
     public function __call(string $name, array $arguments) : void

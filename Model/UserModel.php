@@ -1,8 +1,7 @@
 <?php
 require_once PROJECT_ROOT_PATH . "\\Model\\Database\\Database.php";
 
-class UserModel extends Database implements ModelInterface
-{
+class UserModel extends Database {
     private string $nick;
     private string $email;
     private string $password;
@@ -21,7 +20,9 @@ class UserModel extends Database implements ModelInterface
 
     public function checkLogin() : ?UserModel
     {
-        $data = $this->select($this->getTableName(), array('password, nick, id'), array(new WhereClause('AND', 'email', $this->email, false)));
+        $query = "SELECT password, nick, id FROM uzivatel WHERE email LIKE ?";
+        $values = array($this->email);
+        $data = $this->selectnew($query, $values);
         if (!empty($data)) {
             if (password_verify($this->password, $data[0]['password'])) {
                 $result = new UserModel();
@@ -34,11 +35,15 @@ class UserModel extends Database implements ModelInterface
     }
 
     public function nickExists() : bool {
-        return !empty($this->select($this->getTableName(), array('id'), array(new WhereClause('AND', 'nick', $this->nick, false))));
+        $query = "SELECT id FROM uzivatel WHERE nick LIKE ?";
+        $values = array($this->nick);
+        return !empty($this->selectnew($query, $values));
     }
 
     public function emailExists() : bool {
-        return !empty($this->select($this->getTableName(), array('id'), array(new WhereClause('AND', 'email', $this->email, false))));
+        $query = "SELECT id FROM uzivatel WHERE email LIKE ?";
+        $values = array($this->email);
+        return !empty($this->selectnew($query, $values));
     }
 
     public function getNick() : string{

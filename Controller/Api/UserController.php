@@ -3,8 +3,8 @@ class UserController extends BaseController{
 
     public function __construct(string $operation) {
 
-        parent::__construct();
-
+        $this->sessionManager = new SessionManager();
+        
         switch($operation) {
             case 'login':
                 $this->tryLogIn();
@@ -44,8 +44,8 @@ class UserController extends BaseController{
 
     private function logOut() : void {
         if (strtoupper($_SERVER["REQUEST_METHOD"] === "GET")) {
-            var_dump($this->sessionManager->get('user'));
-            if ($this->sessionManager->has('user')) {
+            var_dump($this->sessionManager->get('userid'));
+            if ($this->sessionManager->has('userid')) {
                 $this->sessionManager->kill();
                 $this->sendSuccessResponse(array((object)[]), 200);
             } else {
@@ -62,11 +62,13 @@ class UserController extends BaseController{
         }
         $jsonObject = $this->getJsonAsObjects();
 
-        $userModel = new UserModel($jsonObject->nick, $jsonObject->email , password_hash($jsonObject->password, PASSWORD_DEFAULT));
+        $userModel = new UserModel();
+        $userModel->setNick($jsonObject->nick);
+        $userModel->setEmail($jsonObject->email);
+        $userModel->setPassword(password_hash($jsonObject->password, PASSWORD_DEFAULT));
         //TODO zatial takto, neskor statusy - active confirmed, active, inactive, ?last activity on account?
 
         //mozme vytiahnut list usernames, poslat vsetky a porovnavat to fastozne -live
-
         if (!$userModel->validate()) {
             $this->sendErrorResponse("Invalid user data", 400);
         }
