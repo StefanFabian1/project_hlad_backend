@@ -1,10 +1,12 @@
 <?php
 class UserController extends BaseController{
 
+    private UserDAO $userDAO;
+
     public function __construct(string $operation) {
 
         $this->sessionManager = new SessionManager();
-        
+        $this->userDAO = new UserDAO();
         switch($operation) {
             case 'login':
                 $this->tryLogIn();
@@ -25,15 +27,15 @@ class UserController extends BaseController{
             $this->sendErrorResponse('Unsupported request method', 404);
         } 
         $jsonObject = $this->getJsonAsObjects();
-        $userModel = new UserModel();
-        $userModel->setEmail($jsonObject->email);
-        $userModel->setPassword($jsonObject->password);
+        $user = new Uzivatel();
+        $user->setEmail($jsonObject->email);
+        $user->setPassword($jsonObject->password);
         try {
-            $user = $userModel->checkLogin();
-            if ($user != null && $user->getId() != null && $user->getNick() != null) {
-                $this->sessionManager->set('userid', $user->getId());
+            $userDB = $this->userDAO->checkLogin($user);
+            if ($userDB != null && $userDB->getId() != null && $userDB->getNick() != null) {
+                $this->sessionManager->set('userid', $userDB->getId());
                
-                $this->sendSuccessResponse(array((object)['nickname' => $user->getNick()]), 200);
+                $this->sendSuccessResponse(array((object)['nickname' => $userDB->getNick()]), 200);
             } else {
                 $this->sendErrorResponse("Username or password incorrect", 401);
             }
@@ -62,19 +64,19 @@ class UserController extends BaseController{
         }
         $jsonObject = $this->getJsonAsObjects();
 
-        $userModel = new UserModel();
-        $userModel->setNick($jsonObject->nick);
-        $userModel->setEmail($jsonObject->email);
-        $userModel->setPassword(password_hash($jsonObject->password, PASSWORD_DEFAULT));
+        $user = new Uzivatel();
+        $user->setNick($jsonObject->nick);
+        $user->setEmail($jsonObject->email);
+        $user->setPassword(password_hash($jsonObject->password, PASSWORD_DEFAULT));
         //TODO zatial takto, neskor statusy - active confirmed, active, inactive, ?last activity on account?
 
         //mozme vytiahnut list usernames, poslat vsetky a porovnavat to fastozne -live
-        if (!$userModel->validate()) {
+        if (!$this->userDAO->validate($user)) {
             $this->sendErrorResponse("Invalid user data", 400);
         }
 
-        $nickExists = $userModel->nickExists();
-        $mailExists = $userModel->emailExists();
+        $nickExists = $this->userDAO->nickExists($user->getNick());
+        $mailExists = $this->userDAO->emailExists($user->getEmail());
         if ($nickExists && $mailExists) {
             $this->sendErrorResponse("Nickname and email already exists", 409);
         } else if (!$nickExists && $mailExists) {
@@ -83,13 +85,13 @@ class UserController extends BaseController{
             $this->sendErrorResponse("Nickname already exists", 409);
         }
         try {
-            $result = $userModel->saveUser();
+            $result = $this->userDAO->saveUser($user);
         } catch (Exception $e) {
             $this->sendErrorResponse('Exception occured while saving user:' . $e->getMessage(), 500);
         }
 
         if (is_int($result)) {
-            $this->sendSuccessResponse(array((object)['user_id' => $result]), 201);
+            $this->sendSuccessResponse(array(['user_id' => $result]), 201);
         } else {
             $this->sendErrorResponse('Error saving user', 500);
         }

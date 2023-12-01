@@ -1,9 +1,7 @@
 <?php
 class Database
 {
-
     protected $connection = null;
-    protected int $id;
 
     public function __construct()
     {
@@ -29,15 +27,15 @@ class Database
         var_dump($types);
     }
 
-    protected function selectNew(string $query, array $values = [])
+    protected function select(string $query, array $values = [])
     {
         $types = "";
         foreach ($values as $value) {
             $types .= $this->getDataTypeSpecifier(gettype($value));
         }
-        var_dump($query);
-        var_dump($values);
-        var_dump($types);
+        //var_dump($query);
+        //var_dump($values);
+        //var_dump($types);
         $this->executeStmt($query, $values, $types);
         return $this->executeStmt($query, $values, $types);
     }
@@ -122,15 +120,5 @@ class Database
             default:
                 return 's'; // Default to string if type is not recognized
         }
-    }
-
-    public function getId(): int
-    {
-        return $this->id;
-    }
-
-    public function setId(int $id): void
-    {
-        $this->id = $id;
     }
 }
