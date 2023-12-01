@@ -3,10 +3,15 @@ class BaseController
 {
 
     protected SessionManager $sessionManager;
+    protected ?int $userId;
 
     public function __construct() {
-       
         $this->sessionManager = new SessionManager();
+        if ($this->sessionManager->has('userid')) {
+            $this->userId = (int) $this->sessionManager->get('userid') ?? null;
+        } else {
+            $this->userId = null;
+        }
         $this->chooseHttpRequestMethod();
     }
 
@@ -24,9 +29,9 @@ class BaseController
         exit;
     }
 
-    protected function sendSuccessResponse(array $objects, int $statusCode) : void
+    protected function sendSuccessResponse(array $data, int $statusCode) : void
     {
-        $response = ['status' => 'success', 'data' => $objects];
+        $response = ['status' => 'success', 'data' => $data];
         $this->sendOutput(json_encode($response), $statusCode);
     }
 
@@ -38,7 +43,8 @@ class BaseController
 
     protected function sendNoContentResponse(): void
     {
-        $response = ['status' => 'success', 'message' => 'No content'];
+        $message = 'No content';
+        $response = ['status' => 'success', 'message' => $message];
         $this->sendOutput(json_encode($response), 204);
     }
 
