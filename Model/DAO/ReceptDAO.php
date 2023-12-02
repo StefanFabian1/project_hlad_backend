@@ -170,6 +170,61 @@ class ReceptDAO extends Database
         return new Recept();
     }
 
+    public function saveRecept(array $receptData) {
+
+        $recept = new Recept();
+
+        // Recept
+        $recept->setName($receptData['name']);
+        $recept->setDescription($receptData['description']);
+        $recept->setSukromny($receptData['sukromny']);
+
+        // vlastnik
+        $uzivatelData = $receptData['vlastnik'];
+        $uzivatel = new Uzivatel();
+        $uzivatel->setId($uzivatelData['id']);
+        $recept->setVlastnik($uzivatel);
+
+        // image
+        $imageData = $receptData['image'] ?? [];
+        if (!empty($imageData)) {
+            $obrazok = new Obrazok();
+            $obrazok->setOriginalName($imageData['name']);
+            //TODO po zapisani receptu ziskane id, cestu a novy nazov zapisem do obrazku
+            $recept->setImage($obrazok);
+        } else {
+            $recept->setImage(null);
+        }
+
+        // ingrediencie
+        $ingrediencieData = $receptData['ingrediencie'];
+        $ingrediencieArray = [];
+        foreach ($ingrediencieData as $ingrediencieData) {
+
+            $ingredienciaReceptu = new IngredienciaReceptu();
+            $ingredienciaReceptu->setMnozstvo($ingrediencieData['mnozstvo']);
+
+            $ingredienciaData = $ingrediencieData['ingrediencia'];
+            $ingrediencia = new Ingrediencia();
+            $ingrediencia->setId($ingredienciaData['id'] ?? null);
+            $ingrediencia->setName($ingredienciaData['name']);
+            $ingredienciaReceptu->setIngrediencia($ingrediencia);
+
+            $mernaJednotkaData = $ingrediencieData['mernaJednotka'];
+            $mernaJednotka = new MernaJednotka();
+            $mernaJednotka->setId($mernaJednotkaData['id'] ?? null);
+            $mernaJednotka->setUnit($mernaJednotkaData['unit']);
+            $mernaJednotka->setNazov($mernaJednotkaData['nazov']);
+            $ingredienciaReceptu->setMernaJednotka($mernaJednotka);
+
+            $ingrediencieArray[] = $ingredienciaReceptu;
+        }
+        $recept->setIngrediencie($ingrediencieArray);
+
+        //TODO mozeme veselo zapisovat do DB
+        var_dump($recept);
+    }
+
     public function validate(): bool
     {
         //TODO implementation

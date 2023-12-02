@@ -54,6 +54,11 @@ class BaseController
         return json_decode($json);
     }
 
+    protected function getJsonAsArray() : array {
+        $json = file_get_contents('php://input');
+        return json_decode($json, true);
+    }
+
     public function chooseHttpRequestMethod() : void
     {
        $requestMethod = strtoupper($_SERVER["REQUEST_METHOD"]);

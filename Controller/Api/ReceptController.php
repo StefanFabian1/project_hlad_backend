@@ -55,12 +55,17 @@ class ReceptController extends BaseController{
 
     public function doPost()
     {
-        echo ("post");
+        echo ("post - posleme nejake filtre z FE :D");
+    }
+
+    public function doPut() {
+        //TODO handle sucess and failed...
+        $this->receptDAO->saveRecept($this->getJsonAsArray());
     }
 
     public function doPatch()
     {
-        echo ("patch");
+        echo ("patch - budeme posielat len atributy ktore sa zmenili, teda dotiahnem cely objekt a upravim poz atribut");
     }
 }
 ?>
