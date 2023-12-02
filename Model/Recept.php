@@ -2,17 +2,23 @@
 
 require_once PROJECT_ROOT_PATH . "\\Model\\DomainModel.php";
 
-class Recept extends DomainModel implements JsonSerializable{
+class Recept extends DomainModel implements JsonSerializable {
 
     private string $name;
     private string $description;
     private bool $sukromny;
     private int $poc_zobrazeni;
     private int $poc_likes;
-    private array $ingrediencie = array();
-    private string $imageUrl;
+    private array $ingrediencie = [];
+    private ?Obrazok $image;
+    private ?Uzivatel $vlastnik;
 
     private string $tableName = "recept";
+
+    public function getTableName(): string
+    {
+        return $this->tableName;
+    }
 
     public function getName(): string
     {
@@ -34,7 +40,7 @@ class Recept extends DomainModel implements JsonSerializable{
         $this->description = $description;
     }
 
-    public function getSukromny(): bool
+    public function isSukromny(): bool
     {
         return $this->sukromny;
     }
@@ -44,34 +50,24 @@ class Recept extends DomainModel implements JsonSerializable{
         $this->sukromny = $sukromny;
     }
 
-    public function getPoc_zobrazeni(): int
+    public function getPocZobrazeni(): int
     {
         return $this->poc_zobrazeni;
     }
 
-    public function setPoc_zobrazeni(int $poc_zobrazeni): void
+    public function setPocZobrazeni(int $poc_zobrazeni): void
     {
         $this->poc_zobrazeni = $poc_zobrazeni;
     }
 
-    public function getPoc_likes(): int
+    public function getPocLikes(): int
     {
         return $this->poc_likes;
     }
 
-    public function setPoc_likes(int $poc_likes): void
+    public function setPocLikes(int $poc_likes): void
     {
         $this->poc_likes = $poc_likes;
-    }
-
-    public function getTableName(): string
-    {
-        return $this->tableName;
-    }
-
-    public function setIngrediencie(array $ingrediencie): void
-    {
-        $this->ingrediencie = $ingrediencie;
     }
 
     public function getIngrediencie(): array
@@ -79,27 +75,43 @@ class Recept extends DomainModel implements JsonSerializable{
         return $this->ingrediencie;
     }
 
-    public function setImageUrl(int $imageUrl): void
+    public function setIngrediencie(array $ingrediencie): void
     {
-        $this->imageUrl = $imageUrl;
+        $this->ingrediencie = $ingrediencie;
     }
 
-    public function getImageUrl(): string
+    public function getImage(): ?Obrazok
     {
-        return $this->imageUrl;
+        return $this->image;
     }
 
-    public function jsonSerialize() : array
+    public function setImage(?Obrazok $image): void
+    {
+        $this->image = $image;
+    }
+
+    public function getVlastnik(): ?Uzivatel
+    {
+        return $this->vlastnik;
+    }
+
+    public function setVlastnik(?Uzivatel $vlastnik): void
+    {
+        $this->vlastnik = $vlastnik;
+    }
+
+    public function jsonSerialize(): array
     {
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'imageUrl' => $this->imageUrl,
             'description' => $this->description,
             'sukromny' => $this->sukromny,
             'poc_zobrazeni' => $this->poc_zobrazeni,
             'poc_likes' => $this->poc_likes,
             'ingrediencie' => $this->ingrediencie,
+            'image' => $this->image,
+            'vlastnik' => $this->vlastnik,
         ];
     }
 }

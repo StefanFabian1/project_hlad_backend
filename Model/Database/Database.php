@@ -22,9 +22,9 @@ class Database
         }
         $this->executeStmt($query, $values, $types);
         return $this->connection->insert_id;
-        var_dump($query);
-        var_dump($values);
-        var_dump($types);
+        //var_dump($query);
+        //var_dump($values);
+        //var_dump($types);
     }
 
     protected function select(string $query, array $values = [])
@@ -33,7 +33,7 @@ class Database
         foreach ($values as $value) {
             $types .= $this->getDataTypeSpecifier(gettype($value));
         }
-        //var_dump($query);
+        var_dump($query);
         //var_dump($values);
         //var_dump($types);
         $this->executeStmt($query, $values, $types);

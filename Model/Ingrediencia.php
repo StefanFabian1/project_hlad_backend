@@ -6,6 +6,8 @@ class Ingrediencia extends DomainModel implements JsonSerializable {
 
     private string $name;
 
+    private string $tableName = "ingrediencia";
+
     public function getName(): string
     {
         return $this->name;
@@ -19,8 +21,14 @@ class Ingrediencia extends DomainModel implements JsonSerializable {
     public function jsonSerialize(): array
     {
         return [
+            'id' => $this->id,
             'name' => $this->name,
         ];
+    }
+
+    public function getTableName(): string
+    {
+        return $this->tableName;
     }
 }
 

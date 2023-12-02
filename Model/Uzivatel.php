@@ -2,7 +2,7 @@
 
 require_once PROJECT_ROOT_PATH . "\\Model\\DomainModel.php";
 
-class Uzivatel extends DomainModel{
+class Uzivatel extends DomainModel implements JsonSerializable {
 
     private string $nick;
     private string $email;
@@ -43,6 +43,14 @@ class Uzivatel extends DomainModel{
     public function getTableName(): string
     {
         return $this->tableName;
+    }
+
+    public function jsonSerialize(): array
+    {
+        return [
+            'id' => $this->id,
+            'nick' => $this->nick,
+        ];
     }
 }
 

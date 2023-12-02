@@ -8,6 +8,9 @@ class IngredienciaReceptu extends DomainModel implements JsonSerializable {
     private MernaJednotka $mernaJednotka;
     private float $mnozstvo;
 
+    private string $tableName = "ingrediencia_receptu";
+
+
     public function setIngrediencia(Ingrediencia $ingrediencia): void
     {
         $this->ingrediencia = $ingrediencia;
@@ -36,10 +39,16 @@ class IngredienciaReceptu extends DomainModel implements JsonSerializable {
     public function jsonSerialize(): array
     {
         return [
+            'id' => $this->id,
             'ingrediencia' => $this->ingrediencia,
             'mernaJednotka' => $this->mernaJednotka,
             'mnozstvo' => $this->mnozstvo,
         ];
+    }
+
+    public function getTableName(): string
+    {
+        return $this->tableName;
     }
 }
 ?>

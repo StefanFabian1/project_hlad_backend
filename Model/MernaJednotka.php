@@ -15,6 +15,8 @@ class MernaJednotka extends DomainModel implements JsonSerializable {
     private string $nazov;
     private Typ $typ;
 
+    private string $tableName = "merna_jednotka";
+
     public function getUnit(): string
     {
         return $this->unit;
@@ -48,10 +50,16 @@ class MernaJednotka extends DomainModel implements JsonSerializable {
     public function jsonSerialize(): array
     {
         return [
+            'id' => $this->id,
             'unit' => $this->unit,
             'nazov' => $this->nazov,
-            'typ' => $this->typ->value, // Access the underlying value of the enum
+            //'typ' => $this->typ->value, // Access the underlying value of the enum
         ];
+    }
+
+    public function getTableName(): string
+    {
+        return $this->tableName;
     }
 
 }
