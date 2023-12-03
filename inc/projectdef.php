@@ -4,6 +4,8 @@ define("PROJECT_ROOT_PATH", __DIR__ . "\\..\\");
 
 define("DATE_TIME_MASK", "Y-m-d H:i:s");
 
+define("PATH_TO_IMAGE_STORAGE", __DIR__ . "\\..\\images\\");
+
 date_default_timezone_set("Europe/Bratislava");
 
 require_once PROJECT_ROOT_PATH . "inc\\config.php";

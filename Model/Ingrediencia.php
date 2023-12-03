@@ -4,16 +4,16 @@ require_once PROJECT_ROOT_PATH . "\\Model\\DomainModel.php";
 
 class Ingrediencia extends DomainModel implements JsonSerializable {
 
-    private string $name;
+    private ?string $name;
 
     private string $tableName = "ingrediencia";
 
-    public function getName(): string
+    public function getName(): ?string
     {
         return $this->name;
     }
 
-    public function setName(string $name): void
+    public function setName(?string $name): void
     {
         $this->name = $name;
     }

@@ -11,32 +11,33 @@ enum Typ: string
 
 class MernaJednotka extends DomainModel implements JsonSerializable {
 
-    private string $unit;
-    private string $nazov;
-    private Typ $typ;
+    private ?string $unit;
+    private ?string $nazov;
+    //private Typ $typ;
 
     private string $tableName = "merna_jednotka";
 
-    public function getUnit(): string
+    public function getUnit(): ?string
     {
         return $this->unit;
     }
 
-    public function setUnit(string $unit): void
+    public function setUnit(?string $unit): void
     {
         $this->unit = $unit;
     }
 
-    public function getNazov(): string
+    public function getNazov(): ?string
     {
         return $this->nazov;
     }
 
-    public function setNazov(string $nazov): void
+    public function setNazov(?string $nazov): void
     {
         $this->nazov = $nazov;
     }
 
+    /*
     public function getTyp(): Typ
     {
         return $this->typ;
@@ -46,7 +47,7 @@ class MernaJednotka extends DomainModel implements JsonSerializable {
     {
         $this->typ = $typ;
     }
-
+    */
     public function jsonSerialize(): array
     {
         return [

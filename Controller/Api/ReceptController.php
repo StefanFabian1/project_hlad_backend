@@ -59,13 +59,61 @@ class ReceptController extends BaseController{
     }
 
     public function doPut() {
-        //TODO handle sucess and failed...
-        $this->receptDAO->saveRecept($this->getJsonAsArray());
+        try {
+            $receptId = $this->receptDAO->saveRecept($this->getJsonAsArray(), $this->userId);
+            if ($receptId > 0) {
+                $this->sendSuccessResponse(array($receptId), 200);
+            } else {
+                $this->sendErrorResponse('Nepodarilo sa ulozit novy recept', 500);
+            }
+        } catch (Exception $e) {
+            $this->sendErrorResponse('Exception occured while saving recipe: ' . $e->getMessage(), 500);
+        }
     }
 
     public function doPatch()
     {
-        echo ("patch - budeme posielat len atributy ktore sa zmenili, teda dotiahnem cely objekt a upravim poz atribut");
+        $uri = explode('/', parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
+        if (isset($uri[3]) && ctype_digit($uri[3]) && (int)$uri[3] > 0) {
+            try {
+                $receptId = (int)$uri[3];
+                $result = $this->receptDAO->updateRecept($this->getJsonAsArray(), $receptId, $this->userId);
+                if ($result === null) {
+                    $this->sendErrorResponse('Unauthorized access', 401);
+                } else if ($result > 0) {
+                    $this->sendSuccessResponse(array(''), 200);
+                } else {
+                    $this->sendNoContentResponse();
+                }
+            } catch (Exception $e) {
+                $this->sendErrorResponse('Exception occured while updating recipe: ' . $e->getMessage(), 500);
+            }
+        } else {
+            $this->sendErrorResponse('Page Not Found', 404);
+        }
+    }
+
+    public function doDelete()
+    {
+        $uri = explode('/', parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
+        if (isset($uri[3]) && ctype_digit($uri[3]) && (int)$uri[3] > 0) {
+            try {
+                $receptId = (int)$uri[3];
+                $result = $this->receptDAO->deleteRecept($receptId, $this->userId);
+                var_dump($result);
+                if ($result === null) {
+                    $this->sendErrorResponse('Unauthorized access', 401);
+                } else if ($result > 0) {
+                    $this->sendSuccessResponse(array(''), 200);
+                } else {
+                    $this->sendNoContentResponse();
+                }
+            } catch (Exception $e) {
+                $this->sendErrorResponse('Exception occured while deleting recipe: ' . $e->getMessage(), 500);
+            } 
+        } else {
+            $this->sendErrorResponse('Page Not Found', 404);
+        }
     }
 }
 ?>

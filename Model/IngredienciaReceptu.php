@@ -10,6 +10,10 @@ class IngredienciaReceptu extends DomainModel implements JsonSerializable {
 
     private string $tableName = "ingrediencia_receptu";
 
+    public function getIngrediencia(): Ingrediencia
+    {
+        return $this->ingrediencia;
+    }
 
     public function setIngrediencia(Ingrediencia $ingrediencia): void
     {
