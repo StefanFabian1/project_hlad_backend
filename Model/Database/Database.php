@@ -20,7 +20,7 @@ class Database
         foreach($values as $value) {
             $types .= $this->getDataTypeSpecifier(gettype($value));
         }
-        var_dump($query);
+        //var_dump($query);
         //var_dump($values);
         //var_dump($types);
         $this->executeStmt($query, $values, $types);
@@ -36,7 +36,6 @@ class Database
         var_dump($query);
         //var_dump($values);
         //var_dump($types);
-        $this->executeStmt($query, $values, $types);
         return $this->executeStmt($query, $values, $types);
     }
 
@@ -68,12 +67,11 @@ class Database
 
         $query = "INSERT INTO $tableName ($columnsStr) VALUES ($valuesStr)";
 
-        var_dump($query);
+        //var_dump($query);
         //var_dump($values);
         //var_dump($types);
 
         $this->executeStmt($query, $values, $types);
-
         return $this->connection->insert_id;
     }
 
@@ -82,11 +80,10 @@ class Database
         foreach ($values as $value) {
             $types .= $this->getDataTypeSpecifier(gettype($value));
         }
-        var_dump($query);
+        //var_dump($query);
         //var_dump($values);
         //var_dump($types);
-        $this->executeStmt($query, $values, $types);
-        return $this->connection->affected_rows;
+        return $this->executeStmt($query, $values, $types);
     }
 
     protected function update(object $object)
@@ -122,12 +119,11 @@ class Database
         $values[] = $object->getId();
         $types .= "i";
 
-        var_dump($query);
+        //var_dump($query);
         //var_dump($values);
         //var_dump($types);
 
-        $this->executeStmt($query, $values, $types);
-        return $this->connection->affected_rows;
+        return $this->executeStmt($query, $values, $types);
     }
 
     protected function delete(string $query, array $values = []) {
@@ -135,14 +131,13 @@ class Database
         foreach ($values as $value) {
             $types .= $this->getDataTypeSpecifier(gettype($value));
         }
-        var_dump($query);
+        //var_dump($query);
         //var_dump($values);
         //var_dump($types);
-        $this->executeStmt($query, $values, $types);
-        return $this->connection->affected_rows;
+        return $this->executeStmt($query, $values, $types);
     }
 
-    private function executeStmt(string $query = "", array $values = [], string $types = ''): ?array
+    private function executeStmt(string $query = "", array $values = [], string $types = '')
     {
         $stmt = null;
 
@@ -158,13 +153,12 @@ class Database
             }
 
             $stmt->execute();
-
             if (strcasecmp(substr(trim($query), 0, 6), 'SELECT') === 0) {
                 $result = $stmt->get_result();
                 $data = $result->fetch_all(MYSQLI_ASSOC);
                 return $data;
             } else {
-                return null;
+                return mysqli_stmt_affected_rows($stmt);
             }
         } catch (Exception $e) {
             throw new Exception("Query execution failed: " . $e->getMessage(), 0, $e);

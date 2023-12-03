@@ -171,12 +171,13 @@ class ReceptDAO extends Database
     }
 
     public function saveRecept(array $receptData, int $userId): ?int
-    {
+    {   //TODO recept name unique
         $recept = $this->createReceptObject($receptData, $userId);
         try {
             $this->connection->begin_transaction();
 
             $receptId = $this->insertRecept($recept);
+            $recept->setId($receptId);
             if ($receptId < 1) {
                 $this->connection->rollback();
                 throw new Exception("Failed to insert RECEPT, rollback executed");
@@ -187,7 +188,7 @@ class ReceptDAO extends Database
             }
             $this->processIngrediencieReceptu($recept);
             $this->connection->commit();
-            $recept->setId($receptId);
+
             return $recept->getId();
         } catch (Exception $e) {
             $this->connection->rollback();
@@ -249,7 +250,7 @@ class ReceptDAO extends Database
         return $recept;
     }
 
-    private function insertRecept(Recept $recept): int
+    private function insertRecept(Recept $recept)
     {
         $query = "INSERT INTO RECEPT (name, description, sukromny, poc_zobrazeni, poc_likes, uzivatel_id) VALUES (?, ?, ?, ?, ?, ?)";
         $values = [$recept->getName(), $recept->getDescription(), (int) $recept->isSukromny(), 0, 0, $recept->getVlastnik()->getId()];
@@ -270,7 +271,10 @@ class ReceptDAO extends Database
 
             $obrazokToSave->setId($imageId);
             $obrazokToSave->setName("recept_image_" . $obrazokToSave->getId());
-            $this->update($obrazokToSave);
+            $res = $this->update($obrazokToSave);
+            if ($res < 1) {
+                throw new Exception("Failed to update saved image name");
+            }
             //TODO fyzicky ulozit obrazok, respektive to nechat na fe
             $recept->setImage($obrazokToSave);
         } catch (Exception $e) {
@@ -347,10 +351,14 @@ class ReceptDAO extends Database
                     $this->delete($query, $values);
 
                     $query = "DELETE FROM recept WHERE id = ?";
-                    $this->delete($query, $values);
+                    $res = $this->delete($query, $values);
+
+                    if ($res < 0) {
+                        throw new Exception("Failed to delete recept");
+                    }
 
                     $this->connection->commit();
-                    return 1;
+                    return $res;
                 } catch (Exception $e) {
                     $this->connection->rollback();
                     throw $e;
@@ -368,31 +376,48 @@ class ReceptDAO extends Database
         $query = "SELECT uzivatel_id FROM recept WHERE id = ?";
         $values = [$receptId];
         $data = $this->select($query, $values);
-        var_dump($userId);
         if (!empty($data)) {
             if ($data[0]['uzivatel_id'] == $userId && $receptId == $receptData['id']) {
-                $this->connection->begin_transaction();
-                $recept = $this->createReceptObject($receptData, $userId);
-                $query = "UPDATE recept SET name = ?, description = ?, sukromny = ? WHERE id = ?";
-                $values = [$recept->getName(), $recept->getDescription(), (int) $recept->isSukromny(), $recept->getId()];
-                $this->updateWithQuery($query, $values);
-                //image - ak pride id je to ten isty, ak pride name, jedna sa o novy, ak nepride nic, jedna sa o zmazanie povodneho
-                if ($recept->getImage() == null || ($recept->getImage()->getName() != null && $recept->getImage()->getId() != null)) {
-                    $query = "DELETE FROM image WHERE recept_id = ?";
-                    $this->delete($query, array($$recept->getId()));
-                } else {
-                    if ($recept->getImage()->getName() != null) {
-                        $query = "DELETE FROM image WHERE recept_id = ?";
-                        $this->delete($query, array($$recept->getId()));
-                        $this->processReceptImage($recept);
+                try {
+                    $this->connection->begin_transaction();
+                    $recept = $this->createReceptObject($receptData, $userId);
+                    $query = "UPDATE recept SET name = ?, description = ?, sukromny = ? WHERE id = ?";
+                    $values = [$recept->getName(), $recept->getDescription(), (int) $recept->isSukromny(), $recept->getId()];
+                    $res = $this->updateWithQuery($query, $values);
+                    if ($res < 1) {
+                        throw new Exception("Failed to update recept");
                     }
-                }
-                //ingrediencia receptu - povodne zmazem, pridam nove
-                $query = "DELETE FROM ingrediencia_receptu WHERE recept_id = ?";
-                $this->delete($query, array($$recept->getId()));
-                $this->processIngrediencieReceptu($recept);
+                    //image - ak pride id je to ten isty, ak pride name, jedna sa o novy, ak nepride nic, jedna sa o zmazanie povodneho
+                    if ($recept->getImage() == null || ($recept->getImage()->getName() != null && $recept->getImage()->getId() != null)) {
+                        $query = "DELETE FROM image WHERE recept_id = ?";
+                        $res = $this->delete($query, array($$recept->getId()));
+                        if ($res < 1) {
+                            throw new Exception("Failed to update recept");
+                        }
+                    } else {
+                        if ($recept->getImage()->getName() != null) {
+                            $query = "DELETE FROM image WHERE recept_id = ?";
+                            $res = $this->delete($query, array($recept->getId()));
+                            if ($res < 1) {
+                                throw new Exception("Failed to update recept");
+                            }
+                            $this->processReceptImage($recept);
+                        }
+                    }
+                    //ingrediencia receptu - povodne zmazem, pridam nove
+                    $query = "DELETE FROM ingrediencia_receptu WHERE recept_id = ?";
+                    $res = $this->delete($query, array($$recept->getId()));
+                    if ($res < 1) {
+                        throw new Exception("Failed to update recept");
+                    }
+                    $this->processIngrediencieReceptu($recept);
 
-                $this->connection->commit();
+                    $this->connection->commit();
+                    return $res;
+                } catch (Exception $e) {
+                    $this->connection->rollback();
+                    throw $e;
+                }
             } else {
                 return null;
             }
