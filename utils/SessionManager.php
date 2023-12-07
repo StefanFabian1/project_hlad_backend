@@ -63,6 +63,7 @@ class SessionManager implements SessionInterface
             session_set_cookie_params($this->sessionlifetime);
             session_regenerate_id();
         } elseif ((new DateTimeImmutable())->diff($timeOfStart)->i > 30) {
+            
             $this->kill();
         }
     }

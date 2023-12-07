@@ -5,6 +5,7 @@ class UserController extends BaseController{
 
     public function __construct(string $operation) {
 
+        
         $this->sessionManager = new SessionManager();
         $this->userDAO = new UserDAO();
         switch($operation) {
@@ -16,6 +17,9 @@ class UserController extends BaseController{
                 break;
             case 'logout':
                 $this->logOut();
+                break;
+            case 'isLoggedIn':
+                $this->isLoggedIn();
                 break;
             default:
                 $this->sendErrorResponse('Method not found', 404);
@@ -34,7 +38,6 @@ class UserController extends BaseController{
             $userDB = $this->userDAO->checkLogin($user);
             if ($userDB != null && $userDB->getId() != null && $userDB->getNick() != null) {
                 $this->sessionManager->set('userid', $userDB->getId());
-               
                 $this->sendSuccessResponse(array((object)['nickname' => $userDB->getNick()]), 200);
             } else {
                 $this->sendErrorResponse("Username or password incorrect", 401);
@@ -46,12 +49,12 @@ class UserController extends BaseController{
 
     private function logOut() : void {
         if (strtoupper($_SERVER["REQUEST_METHOD"] === "GET")) {
-            var_dump($this->sessionManager->get('userid'));
             if ($this->sessionManager->has('userid')) {
                 $this->sessionManager->kill();
                 $this->sendSuccessResponse(array((object)[]), 200);
             } else {
-                $this->sendErrorResponse('Error logout user', 404);
+                $this->sessionManager->kill();
+                $this->sendErrorResponse('User not logged in', 404);
             } 
         } else {
             $this->sendErrorResponse('Unsupported request method', 404);
@@ -95,7 +98,16 @@ class UserController extends BaseController{
         } else {
             $this->sendErrorResponse('Error saving user', 500);
         }
+    }
 
+    private function isLoggedIn(): void
+    {
+        if ($this->sessionManager->has('userid')) {
+            $nickName = $this->userDAO->getNick((int) $this->sessionManager->get('userid'));
+            $this->sendSuccessResponse(array(['nickname' => $nickName]), 200);
+        } else {
+            $this->sendSuccessResponse(array(['nickname' => null]), 200);
+        }
     }
 }
 ?>

@@ -33,7 +33,7 @@ class Database
         foreach ($values as $value) {
             $types .= $this->getDataTypeSpecifier(gettype($value));
         }
-        var_dump($query);
+        //var_dump($query);
         //var_dump($values);
         //var_dump($types);
         return $this->executeStmt($query, $values, $types);

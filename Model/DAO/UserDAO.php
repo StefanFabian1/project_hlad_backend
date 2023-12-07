@@ -36,6 +36,13 @@ class UserDAO extends Database {
         return !empty($this->select($query, $values));
     }
 
+    public function getNick(int $userId): ?string
+    {
+        $query = "SELECT nick FROM uzivatel WHERE id = ?";
+        $values = array($userId);
+        return $this->select($query, $values)[0]['nick'] ?? null;
+    }
+
     public function emailExists(string $email) : bool {
         $query = "SELECT id FROM uzivatel WHERE email LIKE ?";
         $values = array($email);
