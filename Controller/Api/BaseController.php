@@ -22,7 +22,8 @@ class BaseController
 
     protected function sendOutput(string $data, int $statusCode) : void
     {
-        header_remove('Set-Cookie');
+        header('Access-Control-Allow-Credentials: true');
+        header('Access-Control-Allow-Origin: http://localhost:8080');
         header('Content-Type: application/json');
         http_response_code($statusCode);
         echo $data;
