@@ -110,7 +110,7 @@ class Recept extends DomainModel implements JsonSerializable {
             'poc_zobrazeni' => $this->poc_zobrazeni,
             'poc_likes' => $this->poc_likes,
             'ingrediencie' => $this->ingrediencie,
-            'image' => $this->image,
+            //'image' => $this->image,
             'vlastnik' => $this->vlastnik,
         ];
     }

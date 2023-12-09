@@ -20,7 +20,7 @@ class Database
         foreach($values as $value) {
             $types .= $this->getDataTypeSpecifier(gettype($value));
         }
-        //var_dump($query);
+        var_dump($query);
         //var_dump($values);
         //var_dump($types);
         $this->executeStmt($query, $values, $types);
@@ -33,7 +33,7 @@ class Database
         foreach ($values as $value) {
             $types .= $this->getDataTypeSpecifier(gettype($value));
         }
-        //var_dump($query);
+        var_dump($query);
         //var_dump($values);
         //var_dump($types);
         return $this->executeStmt($query, $values, $types);
@@ -67,7 +67,7 @@ class Database
 
         $query = "INSERT INTO $tableName ($columnsStr) VALUES ($valuesStr)";
 
-        //var_dump($query);
+        var_dump($query);
         //var_dump($values);
         //var_dump($types);
 
@@ -80,7 +80,7 @@ class Database
         foreach ($values as $value) {
             $types .= $this->getDataTypeSpecifier(gettype($value));
         }
-        //var_dump($query);
+        var_dump($query);
         //var_dump($values);
         //var_dump($types);
         return $this->executeStmt($query, $values, $types);
@@ -119,7 +119,7 @@ class Database
         $values[] = $object->getId();
         $types .= "i";
 
-        //var_dump($query);
+        var_dump($query);
         //var_dump($values);
         //var_dump($types);
 
@@ -131,7 +131,7 @@ class Database
         foreach ($values as $value) {
             $types .= $this->getDataTypeSpecifier(gettype($value));
         }
-        //var_dump($query);
+        var_dump($query);
         //var_dump($values);
         //var_dump($types);
         return $this->executeStmt($query, $values, $types);

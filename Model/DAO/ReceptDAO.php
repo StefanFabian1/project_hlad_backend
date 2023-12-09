@@ -67,7 +67,7 @@ class ReceptDAO extends Database
                 if ($receptData['image_id'] != null) {
                     $image = new Obrazok();
                     $image->setId($receptData['image_id']);
-                    $image->setId($receptData['path']);
+                    $image->setPath($receptData['path']);
                 } else {
                     $recept->setImage(null);
                 }
@@ -406,7 +406,7 @@ class ReceptDAO extends Database
                     }
                     //ingrediencia receptu - povodne zmazem, pridam nove
                     $query = "DELETE FROM ingrediencia_receptu WHERE recept_id = ?";
-                    $res = $this->delete($query, array($$recept->getId()));
+                    $res = $this->delete($query, array($recept->getId()));
                     if ($res < 1) {
                         throw new Exception("Failed to update recept");
                     }

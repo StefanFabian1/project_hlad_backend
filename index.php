@@ -3,7 +3,11 @@ require __DIR__ . "\\inc\\projectdef.php";
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     header('Access-Control-Allow-Credentials: true');
-    header("Access-Control-Allow-Origin: http://localhost:8080");
+
+    $http_origin = $_SERVER['HTTP_ORIGIN'];
+    if ($http_origin == " http://localhost:8080" || $http_origin == "http://localhost:5173") {
+        header("Access-Control-Allow-Origin: $http_origin");
+    }
     header("Access-Control-Allow-Methods: POST, PUT, OPTIONS");
     header("Access-Control-Allow-Headers: Content-Type");
     http_response_code(204);
@@ -29,7 +33,12 @@ if (isset($uri[2]) && (strcasecmp($uri[2], 'login') == 0 || strcasecmp($uri[2], 
 } else {
     header_remove('Set-Cookie');
     header('Access-Control-Allow-Credentials: true');
-    header('Access-Control-Allow-Origin: http://localhost:8080');
+    if (array_key_exists('HTTP_ORIGIN', $_SERVER)) {
+        $http_origin = $_SERVER['HTTP_ORIGIN'];
+        if ($http_origin == " http://localhost:8080" || $http_origin == "http://localhost:5173") {
+            header("Access-Control-Allow-Origin: $http_origin");
+        }
+    }
     header('Content-Type: application/json');
     http_response_code(404);
     $response = ['status' => 'error', 'message' => 'Page Not Found'];
